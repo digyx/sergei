@@ -10,7 +10,8 @@ defmodule Sergei.MixProject do
       deps: deps(),
       releases: [
         sergei: [
-          include_executables_for: [:unix]
+          include_executables_for: [:unix],
+          steps: [:assemble, :tar]
         ]
       ]
     ]
