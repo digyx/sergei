@@ -24,10 +24,10 @@ defmodule Sergei.Player do
   @impl true
   def handle_info(:tick, state) do
     state
-    |> Enum.each(fn {guild_id, %{url: url, paused: paused}} = _state ->
-      if not Voice.playing?(guild_id) and not paused do
-        Voice.play(guild_id, url, :ytdl)
-      end
+    |> Enum.filter(fn {_id, %{paused: paused} = _state} -> not paused end)
+    |> Enum.filter(fn {guild_id, _data} -> not Voice.playing?(guild_id) end)
+    |> Enum.each(fn {guild_id, %{url: url}} = _state ->
+      Voice.play(guild_id, url, :ytdl)
     end)
 
     Process.send_after(self(), :tick, 100)
