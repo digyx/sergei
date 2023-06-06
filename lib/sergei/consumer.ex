@@ -18,7 +18,8 @@ defmodule Sergei.Consumer do
     {"ping", "Pong", []},
     {"play", "Play a song or resume playback", @play_opts},
     {"pause", "Pause media playback", []},
-    {"stop", "Stop media playback and leave the voice channel", []}
+    {"stop", "Stop media playback and leave the voice channel", []},
+    {"song", "What song is currently playing?", []}
   ]
 
   def start_link do
@@ -157,6 +158,17 @@ defmodule Sergei.Consumer do
       {:error, err} ->
         Logger.error("Failed to stop media: #{err}")
         {:error, "This is embarrasing..."}
+    end
+  end
+
+  # /song
+  def do_command(%{guild_id: guild_id, data: %{name: "song"}}) do
+    case Sergei.Player.get_current_song(guild_id) do
+      :not_playing ->
+        {:ok, "I'm not playing anything right now."}
+
+      url ->
+        {:ok, url}
     end
   end
 end

@@ -35,6 +35,11 @@ defmodule Sergei.Player do
     GenServer.call(__MODULE__, {:stop, guild_id})
   end
 
+  @spec get_current_song(integer()) :: String.t() | :not_playing
+  def get_current_song(guild_id) do
+    GenServer.call(__MODULE__, {:get_current_song, guild_id})
+  end
+
   # Server
   @impl true
   def handle_info(:tick, state) do
@@ -101,6 +106,18 @@ defmodule Sergei.Player do
     Voice.leave_channel(guild_id)
 
     {:reply, :ok, Map.delete(state, guild_id)}
+  end
+
+  @impl true
+  def handle_call({:get_current_song, guild_id}, _from, state) do
+    res =
+      case Map.get(state, guild_id) do
+        %{url: url} -> url
+        nil -> :not_playing
+        _ -> Logger.error("error: Guild found, but no URL is given")
+      end
+
+    {:reply, res, state}
   end
 
   def play_music(guild_id, channel_id, url) do
