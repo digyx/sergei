@@ -21,7 +21,7 @@ version: 3
 
 services:
   sergei:
-    image: digyx/sergei:latest
+    image: codeberg.org/godmaire/sergei:latest
     container_name: sergei
     environment:
       - "DISCORD_TOK=<discord-token>"

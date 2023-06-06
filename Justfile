@@ -1,10 +1,10 @@
 set dotenv-load
 
 build:
-    podman build -t git.scalio.me/digyx/sergei:latest .
+    podman build -t codeberg.org/godmaire/sergei:latest .
 
 deploy: build
-    podman push git.scalio.me/digyx/sergei:latest
+    podman push codeberg.org/godmaire/sergei:latest
 
 run:
     mix deps.get
