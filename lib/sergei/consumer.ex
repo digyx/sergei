@@ -65,7 +65,13 @@ defmodule Sergei.Consumer do
           %{type: 4, data: %{content: msg, flags: 2 ** 6}}
 
         {:error, msg} ->
-          %{type: 4, data: %{content: msg, flags: 2 ** 6}}
+          %{
+            type: 4,
+            data: %{
+              content: "error: #{msg}\n\nPlease contact <@447533152567689226> for help",
+              flags: 2 ** 6
+            }
+          }
       end
 
     Api.create_interaction_response!(interaction, response)
@@ -109,6 +115,9 @@ defmodule Sergei.Consumer do
       :ok ->
         {:ok, "Pausing..."}
 
+      :not_playing ->
+        {:ok, "I'm not playing anything right now."}
+
       {:error, err} ->
         Logger.error("Failed to pause media: #{err}")
         {:error, "This is embarrasing..."}
@@ -120,6 +129,9 @@ defmodule Sergei.Consumer do
     case Sergei.Player.resume(guild_id) do
       :ok ->
         {:ok, "Resuming..."}
+
+      :not_playing ->
+        {:ok, "I'm not playing anything right now."}
 
       {:error, err} ->
         Logger.error("Failed to resume media: #{err}")
