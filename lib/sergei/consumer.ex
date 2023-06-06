@@ -68,7 +68,7 @@ defmodule Sergei.Consumer do
           %{
             type: 4,
             data: %{
-              content: "error: #{msg}\n\nPlease contact <@447533152567689226> for help",
+              content: "error: #{msg}",
               flags: 2 ** 6
             }
           }
