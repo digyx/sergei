@@ -10,7 +10,7 @@ Discord music bot using [[https://github.com/yt-dlp/yt-dlp][yt-dlp]] to loop the
 - [-] Queuing
   - [X] Add
   - [ ] Next
-  - [ ] Clear
+  - [X] Clear
 ** Future Ideas
 - [ ] Web Interface
 - [ ] Foundry VTT Integration
