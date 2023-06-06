@@ -84,7 +84,10 @@ defmodule Sergei.Player do
       channel_id
     end)
     |> Enum.map(fn channel_id -> Map.get(channel_to_guild, channel_id) end)
-    |> Enum.each(fn guild_id -> stop(guild_id) end)
+    |> Enum.each(fn guild_id ->
+      Voice.stop(guild_id)
+      Voice.leave_channel(guild_id)
+    end)
 
     Process.send_after(self(), :check_empty, @check_empty_interval)
     {:noreply, state}

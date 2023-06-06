@@ -22,10 +22,6 @@ defmodule Sergei.Consumer do
     {"song", "What song is currently playing?", []}
   ]
 
-  def start_link do
-    Consumer.start_link(__MODULE__)
-  end
-
   # Initialization of the Discord Client
   def handle_event({:READY, %{guilds: guilds} = _event, _ws_state}) do
     # Playing some tunes
@@ -101,7 +97,7 @@ defmodule Sergei.Consumer do
   # /play <url>
   def do_command(%{
         guild_id: guild_id,
-        member: %{user: %{id: invoker_id}},
+        user: %{id: invoker_id},
         data: %{name: "play", options: [%{name: "url", value: url}]}
       }) do
     case Sergei.VoiceStateCache.get_state(invoker_id) do

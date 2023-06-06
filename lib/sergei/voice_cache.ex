@@ -32,11 +32,7 @@ defmodule Sergei.VoiceStateCache do
     %{
       guild_id: guild_id,
       channel_id: channel_id,
-      member: %{
-        user: %{
-          id: user_id
-        }
-      }
+      user_id: user_id
     } = state
 
     entry = %{
