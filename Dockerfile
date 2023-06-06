@@ -20,11 +20,16 @@ RUN mix release sergei
 FROM alpine:3.16
 
 WORKDIR /opt/sergei
-RUN apk add ffmpeg yt-dlp
 RUN apk add \
     --update \
     --no-cache \
-    libstdc++ ncurses openssl
+    libstdc++ ncurses openssl \
+    ffmpeg python3
+
+RUN wget https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp
+RUN chmod +x yt-dlp
+RUN mv yt-dlp /usr/bin/yt-dlp
+
 COPY --from=build_stage /opt/build/_build/prod/rel/sergei /opt/sergei
 
 ENTRYPOINT ["/opt/sergei/bin/sergei"]
