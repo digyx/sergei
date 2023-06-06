@@ -11,15 +11,14 @@ defmodule Sergei.Consumer do
   end
 
   @play_opts [
-    opt.(3, "url", "URL of the audio to play", required: true)
+    opt.(3, "url", "URL of the audio to play", [])
   ]
 
   @slash_commands [
     {"ping", "Pong", []},
-    {"play", "Play some tunes", @play_opts},
-    {"stop", "Stop media playback and leave the voice channel", []},
+    {"play", "Play a song or resume playback", @play_opts},
     {"pause", "Pause media playback", []},
-    {"resume", "Resume media playback", []}
+    {"stop", "Stop media playback and leave the voice channel", []}
   ]
 
   def start_link do
@@ -89,15 +88,11 @@ defmodule Sergei.Consumer do
   end
 
   # /play <url>
-  def do_command(
-        %{
-          guild_id: guild_id,
-          member: %{user: %{id: invoker_id}},
-          data: %{name: "play", options: opts}
-        } = _interaction
-      ) do
-    [%{name: "url", value: url}] = opts
-
+  def do_command(%{
+        guild_id: guild_id,
+        member: %{user: %{id: invoker_id}},
+        data: %{name: "play", options: [%{name: "url", value: url}]}
+      }) do
     case Sergei.VoiceStateCache.get_state(invoker_id) do
       %{guild_id: id} = _res when guild_id != id ->
         {:error, "You're not connected to a voice channel in this server."}
@@ -110,17 +105,17 @@ defmodule Sergei.Consumer do
     end
   end
 
-  # /stop
-  def do_command(%{guild_id: guild_id, data: %{name: "stop"}}) do
-    case Sergei.Player.stop(guild_id) do
+  # /play
+  def do_command(%{guild_id: guild_id, data: %{name: "play"}}) do
+    case Sergei.Player.resume(guild_id) do
       :ok ->
-        {:ok, "Bye!"}
+        {:ok, "Resuming playback..."}
 
       :not_playing ->
         {:ok, "I'm not playing anything right now."}
 
       {:error, err} ->
-        Logger.error("Failed to stop media: #{err}")
+        Logger.error("Failed to resume media: #{err}")
         {:error, "This is embarrasing..."}
     end
   end
@@ -140,17 +135,17 @@ defmodule Sergei.Consumer do
     end
   end
 
-  # /resume
-  def do_command(%{guild_id: guild_id, data: %{name: "resume"}}) do
-    case Sergei.Player.resume(guild_id) do
+  # /stop
+  def do_command(%{guild_id: guild_id, data: %{name: "stop"}}) do
+    case Sergei.Player.stop(guild_id) do
       :ok ->
-        {:ok, "Resuming..."}
+        {:ok, "Bye!"}
 
       :not_playing ->
         {:ok, "I'm not playing anything right now."}
 
       {:error, err} ->
-        Logger.error("Failed to resume media: #{err}")
+        Logger.error("Failed to stop media: #{err}")
         {:error, "This is embarrasing..."}
     end
   end

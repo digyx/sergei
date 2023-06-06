@@ -20,11 +20,6 @@ defmodule Sergei.Player do
     GenServer.call(__MODULE__, {:play, guild_id, channel_id, url})
   end
 
-  @spec stop(integer()) :: :ok | :not_playing | {:error, String.t()}
-  def stop(guild_id) do
-    GenServer.call(__MODULE__, {:stop, guild_id})
-  end
-
   @spec pause(integer()) :: :ok | :not_playing | {:error, String.t()}
   def pause(guild_id) do
     GenServer.call(__MODULE__, {:pause, guild_id})
@@ -33,6 +28,11 @@ defmodule Sergei.Player do
   @spec resume(integer()) :: :ok | :not_playing | {:error, String.t()}
   def resume(guild_id) do
     GenServer.call(__MODULE__, {:resume, guild_id})
+  end
+
+  @spec stop(integer()) :: :ok | :not_playing | {:error, String.t()}
+  def stop(guild_id) do
+    GenServer.call(__MODULE__, {:stop, guild_id})
   end
 
   # Server
@@ -68,14 +68,6 @@ defmodule Sergei.Player do
   end
 
   @impl true
-  def handle_call({:stop, guild_id}, _from, state) do
-    Voice.stop(guild_id)
-    Voice.leave_channel(guild_id)
-
-    {:reply, :ok, Map.delete(state, guild_id)}
-  end
-
-  @impl true
   def handle_call({:pause, guild_id}, _from, state) do
     %{url: url} = Map.fetch!(state, guild_id)
     Voice.pause(guild_id)
@@ -101,6 +93,14 @@ defmodule Sergei.Player do
       })
 
     {:reply, :ok, state}
+  end
+
+  @impl true
+  def handle_call({:stop, guild_id}, _from, state) do
+    Voice.stop(guild_id)
+    Voice.leave_channel(guild_id)
+
+    {:reply, :ok, Map.delete(state, guild_id)}
   end
 
   def play_music(guild_id, channel_id, url) do
