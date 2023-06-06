@@ -17,10 +17,14 @@ RUN mix local.hex --force && \
 COPY lib ./lib
 RUN mix release sergei
 
-FROM elixir:alpine
+FROM alpine:3.16
 
 WORKDIR /opt/sergei
 RUN apk add ffmpeg yt-dlp
+RUN apk add \
+    --update \
+    --no-cache \
+    libstdc++ ncurses openssl
 COPY --from=build_stage /opt/build/_build/prod/rel/sergei /opt/sergei
 
 ENTRYPOINT ["/opt/sergei/bin/sergei"]
