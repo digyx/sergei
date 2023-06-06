@@ -1,6 +1,7 @@
 defmodule Sergei.Consumer do
   use Nostrum.Consumer
 
+  require Logger
   alias Nostrum.Api
 
   # Translate params to list of maps
@@ -15,6 +16,8 @@ defmodule Sergei.Consumer do
 
   @slash_commands [
     {"ping", "Pong", []},
+    {"pause", "Pause media playback", []},
+    {"resume", "Resume media playback", []},
     {"play", "Play some tunes", @play_opts}
   ]
 
@@ -97,6 +100,30 @@ defmodule Sergei.Consumer do
 
       nil ->
         {:error, "You are not in a voice channel."}
+    end
+  end
+
+  # /pause
+  def do_command(%{guild_id: guild_id, data: %{name: "pause"}}) do
+    case Sergei.Player.pause(guild_id) do
+      :ok ->
+        {:ok, "Pausing..."}
+
+      {:error, err} ->
+        Logger.error("Failed to pause media: #{err}")
+        {:error, "This is embarrasing..."}
+    end
+  end
+
+  # /resume
+  def do_command(%{guild_id: guild_id, data: %{name: "resume"}}) do
+    case Sergei.Player.resume(guild_id) do
+      :ok ->
+        {:ok, "Resuming..."}
+
+      {:error, err} ->
+        Logger.error("Failed to resume media: #{err}")
+        {:error, "This is embarrasing..."}
     end
   end
 end

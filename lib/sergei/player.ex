@@ -20,6 +20,14 @@ defmodule Sergei.Player do
     GenServer.call(__MODULE__, {:play, guild_id, channel_id, url})
   end
 
+  def pause(guild_id) do
+    GenServer.call(__MODULE__, {:pause, guild_id})
+  end
+
+  def resume(guild_id) do
+    GenServer.call(__MODULE__, {:resume, guild_id})
+  end
+
   # Server
   @impl true
   def handle_info(:tick, state) do
@@ -45,6 +53,39 @@ defmodule Sergei.Player do
       })
 
     {:reply, res, state}
+  end
+
+  @impl true
+  def handle_call({_, guild_id}, _from, state) when not is_map_key(state, guild_id) do
+    {:reply, {:error, "I'm not playing anything right now"}, state}
+  end
+
+  @impl true
+  def handle_call({:pause, guild_id}, _from, state) do
+    %{url: url} = Map.fetch!(state, guild_id)
+    Voice.pause(guild_id)
+
+    state =
+      Map.put(state, guild_id, %{
+        url: url,
+        paused: true
+      })
+
+    {:reply, :ok, state}
+  end
+
+  @impl true
+  def handle_call({:resume, guild_id}, _from, state) do
+    %{url: url} = Map.fetch!(state, guild_id)
+    Voice.resume(guild_id)
+
+    state =
+      Map.put(state, guild_id, %{
+        url: url,
+        paused: false
+      })
+
+    {:reply, :ok, state}
   end
 
   def play_music(guild_id, channel_id, url) do
