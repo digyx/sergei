@@ -24,9 +24,14 @@ defmodule Sergei.Player do
     GenServer.call(__MODULE__, {:play, guild_id, channel_id, url})
   end
 
-  @spec queue_add(integer(), String.t()) :: :ok | :not_playing | {:error, String.t()}
+  @spec queue_add(integer(), String.t()) :: :ok | :not_playing
   def queue_add(guild_id, url) do
     GenServer.call(__MODULE__, {:queue_add, guild_id, url})
+  end
+
+  @spec queue_clear(integer()) :: :ok | :not_playing
+  def queue_clear(guild_id) do
+    GenServer.call(__MODULE__, {:queue_clear, guild_id})
   end
 
   @spec pause(integer()) :: :ok | :not_playing | {:error, String.t()}
@@ -128,6 +133,11 @@ defmodule Sergei.Player do
 
   # Queue
   @impl true
+  def handle_call({:queue_add, guild_id, _}, _from, state) when not is_map_key(state, guild_id) do
+    {:reply, :not_playing, state}
+  end
+
+  @impl true
   def handle_call({:queue_add, guild_id, url}, _from, state) do
     %{queue: queue} = Map.fetch!(state, guild_id)
 
@@ -143,9 +153,24 @@ defmodule Sergei.Player do
   end
 
   # Guard:  Ensure Sergei is playing something in the guild
+  #         All commands below this point assume that this is true
   @impl true
   def handle_call({_, guild_id}, _from, state) when not is_map_key(state, guild_id) do
     {:reply, :not_playing, state}
+  end
+
+  # Queue Clear
+  @impl true
+  def handle_call({:queue_clear, guild_id}, _from, state) do
+    {
+      :reply,
+      :ok,
+      Map.update!(
+        state,
+        guild_id,
+        &%{&1 | queue: :queue.new()}
+      )
+    }
   end
 
   # Pause

@@ -16,7 +16,8 @@ defmodule Sergei.Commands do
   ]
 
   @queue_opts [
-    opt.(1, "add", "Add a song to the queue", options: @queue_add_opts)
+    opt.(1, "add", "Add a song to the queue", options: @queue_add_opts),
+    opt.(1, "clear", "Clear the queue", [])
   ]
 
   @slash_commands [
