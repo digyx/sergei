@@ -24,6 +24,11 @@ defmodule Sergei.Player do
     GenServer.call(__MODULE__, {:play, guild_id, channel_id, url})
   end
 
+  @spec queue(integer(), String.t()) :: :ok | :not_playing | {:error, String.t()}
+  def queue(guild_id, url) do
+    GenServer.call(__MODULE__, {:queue, guild_id, url})
+  end
+
   @spec pause(integer()) :: :ok | :not_playing | {:error, String.t()}
   def pause(guild_id) do
     GenServer.call(__MODULE__, {:pause, guild_id})
@@ -50,8 +55,21 @@ defmodule Sergei.Player do
     state
     |> Enum.filter(fn {_id, %{paused: paused} = _state} -> not paused end)
     |> Enum.filter(fn {guild_id, _data} -> not Voice.playing?(guild_id) end)
-    |> Enum.each(fn {guild_id, %{url: url}} = _state ->
+    |> Enum.map(fn {guild_id, %{queue: queue} = state} ->
+      state =
+        case :queue.out(queue) do
+          {{:value, url}, queue} ->
+            %{state | url: url, queue: queue}
+
+          {:empty, _} ->
+            state
+        end
+
+      {guild_id, state}
+    end)
+    |> Enum.map(fn {guild_id, %{url: url}} = state ->
       Voice.play(guild_id, url, :ytdl)
+      state
     end)
 
     Process.send_after(self(), :check_repeat, @check_repeat_interval)
@@ -100,10 +118,26 @@ defmodule Sergei.Player do
     state =
       Map.put(state, guild_id, %{
         url: url,
-        paused: false
+        paused: false,
+        queue: :queue.new()
       })
 
     {:reply, res, state}
+  end
+
+  @impl true
+  def handle_call({:queue, guild_id, url}, _from, state) do
+    %{queue: queue} = instance = Map.fetch!(state, guild_id)
+
+    {
+      :reply,
+      :ok,
+      Map.put(
+        state,
+        guild_id,
+        %{instance | queue: :queue.in(url, queue)}
+      )
+    }
   end
 
   @impl true
@@ -113,13 +147,14 @@ defmodule Sergei.Player do
 
   @impl true
   def handle_call({:pause, guild_id}, _from, state) do
-    %{url: url} = Map.fetch!(state, guild_id)
+    %{url: url, queue: queue} = Map.fetch!(state, guild_id)
     Voice.pause(guild_id)
 
     state =
       Map.put(state, guild_id, %{
         url: url,
-        paused: true
+        paused: true,
+        queue: queue
       })
 
     {:reply, :ok, state}
@@ -127,13 +162,14 @@ defmodule Sergei.Player do
 
   @impl true
   def handle_call({:resume, guild_id}, _from, state) do
-    %{url: url} = Map.fetch!(state, guild_id)
+    %{url: url, queue: queue} = Map.fetch!(state, guild_id)
     Voice.resume(guild_id)
 
     state =
       Map.put(state, guild_id, %{
         url: url,
-        paused: false
+        paused: false,
+        queue: queue
       })
 
     {:reply, :ok, state}

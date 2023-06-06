@@ -14,9 +14,14 @@ defmodule Sergei.Consumer do
     opt.(3, "url", "URL of the audio to play", [])
   ]
 
+  @queue_opts [
+    opt.(3, "url", "URL of the audio to queue", required: true)
+  ]
+
   @slash_commands [
     {"ping", "Pong", []},
     {"play", "Play a song or resume playback", @play_opts},
+    {"queue", "Queue a song to play next", @queue_opts},
     {"pause", "Pause media playback", []},
     {"stop", "Stop media playback and leave the voice channel", []},
     {"song", "What song is currently playing?", []}
@@ -124,6 +129,24 @@ defmodule Sergei.Consumer do
       {:error, err} ->
         Logger.error("Failed to resume media: #{err}")
         {:error, "This is embarrasing..."}
+    end
+  end
+
+  # /queue <url>
+  def do_command(%{
+        guild_id: guild_id,
+        data: %{name: "queue", options: [%{name: "url", value: url}]}
+      }) do
+    case Sergei.Player.queue(guild_id, url) do
+      :ok ->
+        {:ok, "Song queued."}
+
+      :not_playing ->
+        {:ok, "I'm not playing anything right now."}
+
+      {:error, err} ->
+        Logger.error("Failed to queue media: #{err}")
+        {:error, "This is embarassing..."}
     end
   end
 
