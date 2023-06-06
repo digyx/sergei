@@ -111,6 +111,7 @@ defmodule Sergei.Player do
     {:noreply, state}
   end
 
+  # Play
   @impl true
   def handle_call({:play, guild_id, channel_id, url}, _from, state) do
     res = play_music(guild_id, channel_id, url)
@@ -125,54 +126,40 @@ defmodule Sergei.Player do
     {:reply, res, state}
   end
 
+  # Queue
   @impl true
   def handle_call({:queue, guild_id, url}, _from, state) do
-    %{queue: queue} = instance = Map.fetch!(state, guild_id)
+    %{queue: queue} = Map.fetch!(state, guild_id)
 
     {
       :reply,
       :ok,
-      Map.put(
+      Map.update!(
         state,
         guild_id,
-        %{instance | queue: :queue.in(url, queue)}
+        &%{&1 | queue: :queue.in(url, queue)}
       )
     }
   end
 
+  # Guard:  Ensure Sergei is playing something in the guild
   @impl true
   def handle_call({_, guild_id}, _from, state) when not is_map_key(state, guild_id) do
     {:reply, :not_playing, state}
   end
 
+  # Pause
   @impl true
   def handle_call({:pause, guild_id}, _from, state) do
-    %{url: url, queue: queue} = Map.fetch!(state, guild_id)
     Voice.pause(guild_id)
-
-    state =
-      Map.put(state, guild_id, %{
-        url: url,
-        paused: true,
-        queue: queue
-      })
-
-    {:reply, :ok, state}
+    {:reply, :ok, Map.update!(state, guild_id, &%{&1 | paused: true})}
   end
 
+  # Resume
   @impl true
   def handle_call({:resume, guild_id}, _from, state) do
-    %{url: url, queue: queue} = Map.fetch!(state, guild_id)
     Voice.resume(guild_id)
-
-    state =
-      Map.put(state, guild_id, %{
-        url: url,
-        paused: false,
-        queue: queue
-      })
-
-    {:reply, :ok, state}
+    {:reply, :ok, Map.update!(state, guild_id, &%{&1 | paused: false})}
   end
 
   @impl true
