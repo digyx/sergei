@@ -25,10 +25,11 @@ defmodule Sergei.Consumer do
     Consumer.start_link(__MODULE__)
   end
 
-  # Bulk overwrite commands per guild.  While this is efficient enough for now, moving
-  # to global commands in the future is probably a good idea.
-  @spec register_commands!(integer) :: :ok
-  def register_commands!(guild_id) do
+  # Initialization of the Discord Client
+  def handle_event({:READY, %{guilds: guilds} = _event, _ws_state}) do
+    # Playing some tunes
+    Api.update_status(:online, "some tunes", 0)
+
     commands =
       Enum.map(@slash_commands, fn {name, description, options} ->
         %{
@@ -38,19 +39,28 @@ defmodule Sergei.Consumer do
         }
       end)
 
-    case Api.bulk_overwrite_guild_application_commands(guild_id, commands) do
-      {:ok, _res} -> :ok
-      {:error, err} -> raise err
+    case Application.get_env(:sergei, :env) do
+      :prod ->
+        case Api.bulk_overwrite_global_application_commands(commands) do
+          {:ok, _res} -> :ok
+          {:error, err} -> raise err
+        end
+
+      # Overwrite commands by guild in dev for a faster dev cycle
+      :dev ->
+        guilds
+        |> Enum.map(fn guild -> guild.id end)
+        |> Enum.each(fn guild_id ->
+          case Api.bulk_overwrite_guild_application_commands(guild_id, commands) do
+            {:ok, _res} -> :ok
+            {:error, err} -> raise err
+          end
+        end)
+
+      _ ->
+        Logger.error("invalid environment:  expected dev or prod")
+        System.stop(1)
     end
-  end
-
-  # Initialization of the Discord Client
-  def handle_event({:READY, %{guilds: guilds} = _event, _ws_state}) do
-    Api.update_status(:online, "some tunes", 0)
-
-    guilds
-    |> Enum.map(fn guild -> guild.id end)
-    |> Enum.each(&register_commands!/1)
   end
 
   def handle_event({:VOICE_STATE_UPDATE, state, _ws_state}) do
