@@ -7,8 +7,10 @@ Discord music bot using [[https://github.com/yt-dlp/yt-dlp][yt-dlp]] to loop the
 - [X] Play
 - [X] Pause & Resume
 - [X] Stop & Disconnect
-- [ ] Toggle Loop
-- [ ] Queue/Playlists
+- [-] Queuing
+  - [X] Add
+  - [ ] Next
+  - [ ] Clear
 ** Future Ideas
 - [ ] Web Interface
 - [ ] Foundry VTT Integration
