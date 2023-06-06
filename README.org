@@ -12,3 +12,15 @@ Discord music bot using [[https://github.com/yt-dlp/yt-dlp][yt-dlp]] to loop the
 ** Future Ideas
 - [ ] Web Interface
 - [ ] Foundry VTT Integration
+
+* Example Docker Compose File
+#+begin_src yaml
+version: 3
+
+services:
+  sergei:
+    image: digyx/sergei:latest
+    container_name: sergei
+    environment:
+      - "DISCORD_TOK=<discord-token>"
+#+end_src
