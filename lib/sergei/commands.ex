@@ -11,19 +11,10 @@ defmodule Sergei.Commands do
     opt.(3, "url", "URL of the audio to play", [])
   ]
 
-  @queue_add_opts [
-    opt.(3, "url", "URL of the audio to queue", required: true)
-  ]
-
-  @queue_opts [
-    opt.(1, "add", "Add a song to the queue", options: @queue_add_opts),
-    opt.(1, "clear", "Clear the queue", [])
-  ]
-
   @slash_commands [
     {"ping", "Pong", []},
     {"play", "Play a song or resume playback", @play_opts},
-    {"queue", "Manage the song queue", @queue_opts},
+    {"queue", "Manage the song queue", Sergei.Commands.Queue.subcommands()},
     {"pause", "Pause media playback", []},
     {"stop", "Stop media playback and leave the voice channel", []},
     {"song", "What song is currently playing?", []}
