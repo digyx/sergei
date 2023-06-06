@@ -1,9 +1,10 @@
 import os
+import subprocess
+
 from dotenv import load_dotenv
 from functools import partial
 
 import discord
-import pafy
 
 class Client(discord.Client):
     def __init__(self):
@@ -28,8 +29,8 @@ class Client(discord.Client):
         user = message.channel.recipient.id
 
         # Download file if it doesn't exist already
-        if not os.path.exists(url):
-            pafy.new(url).getbestaudio().download(filepath=v_id)
+        if not os.path.exists(v_id):
+            subprocess.run(["yt-dlp", "-f", "ba/b", "-o", v_id, url])
 
         for chan in self.get_all_channels():
             # Check if Channel is Voice Channel

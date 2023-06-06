@@ -1,16 +1,14 @@
 FROM python:3
 
 # Install dependencies
-RUN pip3 install python-dotenv
-RUN pip3 install discord.py
-RUN pip3 install pynacl
-RUN pip3 install youtube_dl
-RUN pip3 install git+https://github.com/Cupcakus/pafy
+RUN apt update
+RUN apt install -y ffmpeg
+RUN pip3 install discord.py python-dotenv pynacl
 
 WORKDIR /usr/src/app
 COPY . .
 
-RUN apt update
-RUN apt install -y ffmpeg
+RUN curl -L https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp -o /usr/local/bin/yt-dlp
+RUN chmod a+rx /usr/local/bin/yt-dlp
 
 CMD ["python3", "main.py"]
