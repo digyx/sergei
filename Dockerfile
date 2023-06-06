@@ -1,14 +1,27 @@
-FROM python:3
+FROM elixir:alpine AS build_stage
 
-# Install dependencies
-RUN apt update
-RUN apt install -y ffmpeg
-RUN pip3 install discord.py python-dotenv pynacl
+# Config
+ENV MIX_ENV prod
+WORKDIR /opt/build
 
-WORKDIR /usr/src/app
-COPY . .
+# Dependendies
+COPY mix.* ./
+COPY config ./config
 
-RUN curl -L https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp -o /usr/local/bin/yt-dlp
-RUN chmod a+rx /usr/local/bin/yt-dlp
+RUN mix local.hex --force && \
+  mix local.rebar --force && \
+  mix deps.get --only prod && \
+  mix deps.compile
 
-CMD ["python3", "main.py"]
+# Build project
+COPY lib ./lib
+RUN mix release sergei
+
+FROM elixir:alpine
+
+WORKDIR /opt/sergei
+RUN apk add ffmpeg yt-dlp
+COPY --from=build_stage /opt/build/_build/prod/rel/sergei /opt/sergei
+
+ENTRYPOINT ["/opt/sergei/bin/sergei"]
+CMD ["start"]
