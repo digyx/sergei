@@ -20,6 +20,11 @@ defmodule Sergei.Player do
     GenServer.call(__MODULE__, {:play, guild_id, channel_id, url})
   end
 
+  @spec stop(integer()) :: :ok | :not_playing | {:error, String.t()}
+  def stop(guild_id) do
+    GenServer.call(__MODULE__, {:stop, guild_id})
+  end
+
   @spec pause(integer()) :: :ok | :not_playing | {:error, String.t()}
   def pause(guild_id) do
     GenServer.call(__MODULE__, {:pause, guild_id})
@@ -60,6 +65,14 @@ defmodule Sergei.Player do
   @impl true
   def handle_call({_, guild_id}, _from, state) when not is_map_key(state, guild_id) do
     {:reply, :not_playing, state}
+  end
+
+  @impl true
+  def handle_call({:stop, guild_id}, _from, state) do
+    Voice.stop(guild_id)
+    Voice.leave_channel(guild_id)
+
+    {:reply, :ok, Map.delete(state, guild_id)}
   end
 
   @impl true

@@ -16,9 +16,10 @@ defmodule Sergei.Consumer do
 
   @slash_commands [
     {"ping", "Pong", []},
+    {"play", "Play some tunes", @play_opts},
+    {"stop", "Stop media playback and leave the voice channel", []},
     {"pause", "Pause media playback", []},
-    {"resume", "Resume media playback", []},
-    {"play", "Play some tunes", @play_opts}
+    {"resume", "Resume media playback", []}
   ]
 
   def start_link do
@@ -106,6 +107,21 @@ defmodule Sergei.Consumer do
 
       nil ->
         {:error, "You are not in a voice channel."}
+    end
+  end
+
+  # /stop
+  def do_command(%{guild_id: guild_id, data: %{name: "stop"}}) do
+    case Sergei.Player.stop(guild_id) do
+      :ok ->
+        {:ok, "Bye!"}
+
+      :not_playing ->
+        {:ok, "I'm not playing anything right now."}
+
+      {:error, err} ->
+        Logger.error("Failed to stop media: #{err}")
+        {:error, "This is embarrasing..."}
     end
   end
 
