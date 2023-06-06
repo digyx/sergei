@@ -4,13 +4,17 @@ defmodule Sergei.Player do
   require Logger
   alias Nostrum.Voice
 
+  @check_repeat_interval 100
+  @check_empty_interval 30_000
+
   def start_link(_) do
     GenServer.start_link(__MODULE__, %{}, name: __MODULE__)
   end
 
   @impl true
   def init(state) do
-    Process.send_after(self(), :tick, 100)
+    Process.send_after(self(), :check_repeat, @check_repeat_interval)
+    Process.send_after(self(), :check_empty, @check_empty_interval)
 
     {:ok, state}
   end
@@ -42,7 +46,7 @@ defmodule Sergei.Player do
 
   # Server
   @impl true
-  def handle_info(:tick, state) do
+  def handle_info(:check_repeat, state) do
     state
     |> Enum.filter(fn {_id, %{paused: paused} = _state} -> not paused end)
     |> Enum.filter(fn {guild_id, _data} -> not Voice.playing?(guild_id) end)
@@ -50,7 +54,39 @@ defmodule Sergei.Player do
       Voice.play(guild_id, url, :ytdl)
     end)
 
-    Process.send_after(self(), :tick, 100)
+    Process.send_after(self(), :check_repeat, @check_repeat_interval)
+    {:noreply, state}
+  end
+
+  @impl true
+  def handle_info(:check_empty, state) do
+    Logger.debug("Checking for empty channels")
+    %{id: self_id} = Nostrum.Cache.Me.get()
+
+    channel_to_guild =
+      state
+      |> Map.keys()
+      |> Map.new(fn guild_id -> {Voice.get_channel_id(guild_id), guild_id} end)
+
+    populated_channels =
+      Sergei.VoiceStateCache.get_state()
+      # Filter out self
+      |> Enum.filter(fn {user_id, _data} -> user_id != self_id end)
+      |> Enum.map(fn {_user_id, %{channel_id: channel_id}} -> channel_id end)
+      |> Enum.reduce(MapSet.new(), fn channel, set -> MapSet.put(set, channel) end)
+
+    state
+    |> Enum.map(fn {guild_id, _data} -> Voice.get_channel_id(guild_id) end)
+    |> Enum.reduce(MapSet.new(), fn channel, set -> MapSet.put(set, channel) end)
+    |> MapSet.difference(populated_channels)
+    |> Enum.map(fn channel_id ->
+      Logger.debug("Leaving channel #{channel_id}")
+      channel_id
+    end)
+    |> Enum.map(fn channel_id -> Map.get(channel_to_guild, channel_id) end)
+    |> Enum.each(fn guild_id -> stop(guild_id) end)
+
+    Process.send_after(self(), :check_empty, @check_empty_interval)
     {:noreply, state}
   end
 

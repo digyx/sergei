@@ -21,6 +21,11 @@ defmodule Sergei.VoiceStateCache do
     GenServer.call(__MODULE__, {:get, user_id})
   end
 
+  @spec get_state() :: %{non_neg_integer() => %{guild_id: integer(), channel_id: integer()}}
+  def get_state() do
+    GenServer.call(__MODULE__, {:get})
+  end
+
   # Server
   @impl true
   def handle_cast({:update, state}, cache) do
@@ -34,9 +39,12 @@ defmodule Sergei.VoiceStateCache do
       }
     } = state
 
-    entry =
-      Map.new()
-      |> Map.put(user_id, %{guild_id: guild_id, channel_id: channel_id})
+    entry = %{
+      user_id => %{
+        guild_id: guild_id,
+        channel_id: channel_id
+      }
+    }
 
     {:noreply, Map.merge(cache, entry)}
   end
@@ -44,5 +52,10 @@ defmodule Sergei.VoiceStateCache do
   @impl true
   def handle_call({:get, user_id}, _from, cache) do
     {:reply, Map.get(cache, user_id), cache}
+  end
+
+  @impl true
+  def handle_call({:get}, _from, cache) do
+    {:reply, cache, cache}
   end
 end
