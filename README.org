@@ -1,0 +1,14 @@
+* Sergei
+
+Discord music bot using [[https://github.com/yt-dlp/yt-dlp][yt-dlp]] to loop the same song over and over and over and over and over again as background music.
+
+* PROJ Roadmap
+** Basic Features
+- [X] Play
+- [X] Pause & Resume
+- [X] Stop & Disconnect
+- [ ] Toggle Loop
+- [ ] Queue/Playlists
+** Future Ideas
+- [ ] Web Interface
+- [ ] Foundry VTT Integration
