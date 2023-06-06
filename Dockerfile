@@ -8,6 +8,7 @@ WORKDIR /opt/build
 COPY mix.* ./
 COPY config ./config
 
+RUN apk add git
 RUN mix local.hex --force && \
   mix local.rebar --force && \
   mix deps.get --only prod && \
@@ -17,7 +18,7 @@ RUN mix local.hex --force && \
 COPY lib ./lib
 RUN mix release sergei
 
-FROM alpine:3.16
+FROM alpine:3.17
 
 WORKDIR /opt/sergei
 RUN apk add \

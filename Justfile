@@ -1,10 +1,10 @@
 set dotenv-load
 
 build:
-    docker build -t digyx/sergei:latest .
+    podman build -t git.scalio.me/digyx/sergei:latest .
 
 deploy: build
-    docker push digyx/sergei:latest
+    podman push git.scalio.me/digyx/sergei:latest
 
 run:
     mix deps.get

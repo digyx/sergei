@@ -32,7 +32,7 @@ defmodule Sergei.MixProject do
       # {:dep_from_git, git: "https://github.com/elixir-lang/my_dep.git", tag: "0.1.0"}
       {:plug_cowboy, "~> 2.0"},
       {:cowlib, "~> 2.11", hex: :remedy_cowlib, override: true},
-      {:nostrum, "~> 0.6"}
+      {:nostrum, github: "Kraigie/nostrum"}
     ]
   end
 end
