@@ -1,7 +1,7 @@
 set dotenv-load
 
 deploy:
-    docker build -t godmaire/sergei:latest
+    docker build -t godmaire/sergei:latest .
     docker tag godmaire/sergei:latest registry.digitalocean.com/godmaire/sergei:latest
     docker push registry.digitalocean.com/godmaire/sergei:latest
 
