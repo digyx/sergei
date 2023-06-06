@@ -24,9 +24,9 @@ defmodule Sergei.Player do
     GenServer.call(__MODULE__, {:play, guild_id, channel_id, url})
   end
 
-  @spec queue(integer(), String.t()) :: :ok | :not_playing | {:error, String.t()}
-  def queue(guild_id, url) do
-    GenServer.call(__MODULE__, {:queue, guild_id, url})
+  @spec queue_add(integer(), String.t()) :: :ok | :not_playing | {:error, String.t()}
+  def queue_add(guild_id, url) do
+    GenServer.call(__MODULE__, {:queue_add, guild_id, url})
   end
 
   @spec pause(integer()) :: :ok | :not_playing | {:error, String.t()}
@@ -128,7 +128,7 @@ defmodule Sergei.Player do
 
   # Queue
   @impl true
-  def handle_call({:queue, guild_id, url}, _from, state) do
+  def handle_call({:queue_add, guild_id, url}, _from, state) do
     %{queue: queue} = Map.fetch!(state, guild_id)
 
     {
