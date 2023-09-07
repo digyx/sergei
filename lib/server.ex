@@ -15,6 +15,6 @@ defmodule Server do
   end
 
   def start_link(_) do
-    Plug.Adapters.Cowboy.http(Server, [])
+    Plug.Cowboy.http(Server, [])
   end
 end

@@ -12,8 +12,6 @@ defmodule Sergei.Application do
       {Plug.Cowboy, scheme: :http, plug: Server, options: [port: 8080]}
     ]
 
-    # See https://hexdocs.pm/elixir/Supervisor.html
-    # for other strategies and supported options
     opts = [
       strategy: :one_for_one,
       name: Sergei.Supervisor

@@ -25,6 +25,10 @@ release: build
     podman push sergei:dev codeberg.org/godmaire/sergei:{{version}}
 
 # Run locally via elixir
+# This requires yt-dlp to be installed
 run:
     mix deps.get
     DISCORD_TOK=$DISCORD_TOK mix run --no-halt
+
+run-docker: build
+  podman run -e DISCORD_TOK=$DISCORD_TOK sergei:dev
